@@ -2,8 +2,8 @@
 			var mypeerid = null;
 			var peer = null;
 			var connection = null;
-			var mousePosX = 600;
-			var otherPosX = 500;
+			var mousePosX = 700;
+			var otherPosX = 400;
 			
 			var init = function() {
 				//peer = new Peer({key: 'uohu08l7r6swcdi'});
@@ -20,11 +20,10 @@
 					connection = conn;
 					connection.on('open', function() {
 						document.getElementById('chatlog').innerHTML += "Connection Established";
+						loop();
 					});
+					
 					connection.on('data', function(data) {
-					// document.getElementById('chatlog').innerHTML += data;
-					// document.getElementById('other').style.top = data.y;
-					// document.getElementById('other').style.left = data.x;
 						otherPosX = data.x;
 					});
 				});
@@ -47,14 +46,10 @@
 				connection = peer.connect(document.getElementById('other_peer_id').value, {reliable: false});
 				connection.on('open', function(data) {
 					document.getElementById('chatlog').innerHTML += "Connection Established";
-					// setup1();
 					loop();
 				});
 
 				connection.on('data', function(data) {
-					//document.getElementById('chatlog').innerHTML += data;
-					// document.getElementById('other').style.top = data.y;
-					// document.getElementById('other').style.left = data.x;
 					otherPosX = data.x;
 
 				});
@@ -62,23 +57,29 @@
 
 			window.addEventListener('load', init);
 
+			
 //for the pong game
 var rectWidth = 600;
 var rectHeight = 400;
-var lotusWidth = 120;
+var lotusWidth = 100;
 var lotusHeight = 25;
 
 
-var r = 30; //radius of buddha's head
-var buddha;
 
-var k = 3; //k= a range to compansate speed+framerate
+var r = 20; //radius of buddha's head
+var buddha;
+var speed = 1;
+var speedLimit = 15;
+
+var k = 5; //k= a range to compansate speed+framerate
 //var rectFill=color(255);
 //boolean fail;
 
 function setup(){
 	createCanvas(displayWidth, displayHeight);
-	buddha = new Buddha();	
+	buddha = new Buddha();
+	buddha1 = new Buddha();
+	buddha1.moveToRight();
 }
 
 function draw(){
@@ -96,19 +97,28 @@ function draw(){
 	noStroke();
 	rect(mousePosX-lotusWidth/2,rectHeight-lotusHeight/2,lotusWidth,lotusHeight);
 	// image(lotusPic,mouseX-lotusWidth/2,rectHeight-lotusHeight/2,lotusWidth,lotusHeight);
-		rect(otherPosX-lotusWidth/2,rectHeight-lotusHeight/2,lotusWidth,lotusHeight);
+	rect(otherPosX-lotusWidth/2,rectHeight-lotusHeight/2,lotusWidth,lotusHeight);
 
 	buddha.display();
+	buddha1.display();
 	buddha.move();
+	buddha1.move();
 	buddha.bounce();
+	buddha1.bounce();
 }
 
 function Buddha(){
-	this.centerX = random(displayWidth/2-rectWidth/2+r, displayWidth/2+rectWidth/2-r); //head randomly in the frame
-	this.centerY = random(r,rectHeight/2); //upper half, so people have time to react when start
+	// this.centerX = random(displayWidth/2-rectWidth/2+r, displayWidth/2+rectWidth/2-r); //head randomly in the frame
+	this.centerX = displayWidth/2;
+	this.centerY = r; //upper half, so people have time to react when start
 	this.speedX = 2;
 	this.speedY = 2;
 }
+
+// Buddha.prototype.speedup = function(){
+// 	this.speedX += increaseSpeed;
+// 	this.speedY += increaseSpeed;
+// }
 
 Buddha.prototype.display = function (){
 	//make a buddha head, made of an image
@@ -116,6 +126,11 @@ Buddha.prototype.display = function (){
 	fill(0, 255, 255);
 	noStroke();
 	ellipse(this.centerX-r, this.centerY-r, 2*r, 2*r);
+}
+
+Buddha.prototype.moveToRight = function (){
+	this.centerX = displayWidth/2 + 50;
+	this.centerY = r + 29;
 }
 
 Buddha.prototype.move = function() {
@@ -128,17 +143,31 @@ Buddha.prototype.move = function() {
 Buddha.prototype.bounce = function(){
 	//touching right 
 	if (this.centerX>=(displayWidth/2)+(rectWidth/2)-r){
-		this.speedX=-this.speedX;
+		if(this.speedX>0){
+			this.speedX=-(this.speedX+speed);
+		}else{
+			this.speedX=-(this.speedX-speed);
+		}
 	}
 
 	//touching left
 	if (this.centerX<=(displayWidth/2)-(rectWidth/2)+r){
-		this.speedX=-this.speedX;
+		// this.speedX=-this.speedX;
+		if(this.speedX>0){
+			this.speedX=-(this.speedX+speed);
+		}else{
+			this.speedX=-(this.speedX-speed);
+		}
 	}
 
 	//touching top 
 	if (this.centerY<=r){
-		this.speedY=-this.speedY;
+		// this.speedY=-this.speedY;
+		if(this.speedY>0){
+			this.speedY=-(this.speedY+speed);
+		}else{
+			this.speedY=-(this.speedY-speed);
+		}
 	}
 
 	//touching bottom border while within lotusWidth
@@ -146,14 +175,24 @@ Buddha.prototype.bounce = function(){
 		this.centerY<=rectHeight-(lotusHeight/2)-r+k  &&   
 		this.centerX>=mousePosX-(lotusWidth/2) && 
 		this.centerX<=mousePosX+(lotusWidth/2)){
-		this.speedY=-this.speedY;
+		// this.speedY=-this.speedY;
+		if(this.speedY>0){
+			this.speedY=-(this.speedY+speed);
+		}else{
+			this.speedY=-(this.speedY-speed);
+		}
 	}
 
-	if (this.centerY>=rectHeight-(lotusHeight/2)-r-k   &&
+	else if (this.centerY>=rectHeight-(lotusHeight/2)-r-k   &&
 		this.centerY<=rectHeight-(lotusHeight/2)-r+k  &&   
-		this.centerX>=mouseX-(lotusWidth/2) && 
-		this.centerX<=mouseX+(lotusWidth/2)){
-		this.speedY=-this.speedY;
+		this.centerX>=otherPosX-(lotusWidth/2) && 
+		this.centerX<=otherPosX+(lotusWidth/2)){
+		// this.speedY=-this.speedY;
+		if(this.speedY>0){
+			this.speedY=-(this.speedY+speed);
+		}else{
+			this.speedY=-(this.speedY-speed);
+		}
 	}
 
 	//if buddha y below rect bottom, rect turns red
@@ -161,6 +200,20 @@ Buddha.prototype.bounce = function(){
 		fill(255,0,0);
 		rect(0,0,displayWidth,displayHeight);
 	}
+
+	if(this.speedX < -15){
+		this.speedX = -15
+	}
+	if(this.speedY < -15){
+		this.speedY = -15
+	}
+	if(this.speedX > speedLimit){
+		this.speedX = speedLimit
+	}
+	if(this.speedY > speedLimit){
+		this.speedY = speedLimit
+	}
+
 }
 
 
